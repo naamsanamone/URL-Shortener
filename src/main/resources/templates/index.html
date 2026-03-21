@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Shortener — Shrink your links</title>
+    <meta name="description" content="A fast, elegant URL shortener with custom aliases and expiration support." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* ── Reset & Base ────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-start: #0f0c29;
+            --bg-mid: #302b63;
+            --bg-end: #24243e;
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --accent: #7c3aed;
+            --accent-hover: #6d28d9;
+            --accent-glow: rgba(124, 58, 237, .45);
+            --success: #10b981;
+            --error: #f43f5e;
+            --text: #f1f5f9;
+            --text-dim: #94a3b8;
+            --input-bg: rgba(255, 255, 255, 0.07);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --radius: 14px;
+            --radius-sm: 10px;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        /* animated gradient orbs */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #7c3aed, transparent 70%);
+            top: -120px;
+            left: -100px;
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, #06b6d4, transparent 70%);
+            bottom: -80px;
+            right: -80px;
+            animation: drift 22s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(60px, 40px) scale(1.15);
+            }
+        }
+
+        /* ── Container ───────────────────────────────────── */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        /* ── Header ─────────────────────────────────────── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            margin-bottom: .75rem;
+        }
+
+        .header .logo svg {
+            width: 36px;
+            height: 36px;
+            color: var(--accent);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #c084fc, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: .95rem;
+            margin-top: .35rem;
+        }
+
+        /* ── Glass Card ──────────────────────────────────── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+            transition: box-shadow .3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 48px rgba(0, 0, 0, .45);
+        }
+
+        /* ── Form ────────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-dim);
+            margin-bottom: .4rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: .75rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: .95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-dim);
+            opacity: .6;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            width: 100%;
+            padding: .85rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), #5b21b6);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: transform .15s, box-shadow .25s;
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ── Result card ─────────────────────────────────── */
+        .result {
+            margin-top: 1.75rem;
+            padding: 1.5rem;
+            background: rgba(16, 185, 129, .08);
+            border: 1px solid rgba(16, 185, 129, .25);
+            border-radius: var(--radius-sm);
+            animation: fadeSlideIn .4s ease;
+        }
+
+        .result-label {
+            font-size: .75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--success);
+            margin-bottom: .5rem;
+        }
+
+        .result-url-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .result-url {
+            flex: 1;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #34d399;
+            word-break: break-all;
+        }
+
+        .result-url a {
+            color: inherit;
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .result-url a:hover {
+            color: #6ee7b7;
+        }
+
+        .copy-btn {
+            flex-shrink: 0;
+            padding: .5rem .85rem;
+            background: rgba(16, 185, 129, .15);
+            border: 1px solid rgba(16, 185, 129, .3);
+            border-radius: 8px;
+            color: #34d399;
+            font-size: .8rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s, transform .15s;
+        }
+
+        .copy-btn:hover {
+            background: rgba(16, 185, 129, .25);
+        }
+
+        .copy-btn:active {
+            transform: scale(.95);
+        }
+
+        .result-meta {
+            margin-top: .75rem;
+            font-size: .82rem;
+            color: var(--text-dim);
+        }
+
+        .result-meta span {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .result-meta-url {
+            display: block;
+            margin-top: .25rem;
+            color: var(--text);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            cursor: default;
+        }
+
+        .result-meta-url:hover {
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        /* ── Error banner ────────────────────────────────── */
+        .error {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: rgba(244, 63, 94, .1);
+            border: 1px solid rgba(244, 63, 94, .3);
+            border-radius: var(--radius-sm);
+            color: #fb7185;
+            font-size: .9rem;
+            font-weight: 500;
+            animation: fadeSlideIn .4s ease;
+        }
+
+        /* ── Custom Datetime Picker ───────────────────────── */
+        .dt-picker {
+            position: relative;
+        }
+
+        .dt-trigger {
+            width: 100%;
+            padding: .75rem 1rem;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-sm);
+            color: var(--text-dim);
+            font-size: .95rem;
+            font-family: inherit;
+            text-align: left;
+            cursor: pointer;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .dt-trigger.has-value {
+            color: var(--text);
+        }
+
+        .dt-trigger:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .dt-dropdown {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: calc(100% + .75rem);
+            width: 220px;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid));
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 1rem;
+            z-index: 10;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
+            animation: fadeSlideIn .2s ease;
+        }
+
+        .dt-dropdown.open {
+            display: block;
+        }
+
+        .dt-dropdown label {
+            display: block;
+            font-size: .7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-dim);
+            margin-bottom: .3rem;
+        }
+
+        .dt-dropdown input {
+            width: 100%;
+            padding: .55rem .75rem;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: .9rem;
+            font-family: inherit;
+            outline: none;
+            margin-bottom: .75rem;
+            transition: border-color .2s;
+        }
+
+        .dt-dropdown input:focus {
+            border-color: var(--accent);
+        }
+
+        .dt-actions {
+            display: flex;
+            gap: .5rem;
+            margin-top: .25rem;
+        }
+
+        .dt-actions button {
+            flex: 1;
+            padding: .5rem;
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background .2s, transform .1s;
+            border: none;
+        }
+
+        .dt-actions button:active {
+            transform: scale(.97);
+        }
+
+        .dt-clear-btn {
+            background: rgba(255, 255, 255, .08);
+            color: var(--text-dim);
+        }
+
+        .dt-clear-btn:hover {
+            background: rgba(255, 255, 255, .14);
+        }
+
+        .dt-done-btn {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .dt-done-btn:hover {
+            background: #059669;
+        }
+
+        /* ── Footer ──────────────────────────────────────── */
+        .footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: .78rem;
+            color: var(--text-dim);
+            opacity: .6;
+        }
+
+        /* ── Animations ──────────────────────────────────── */
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Responsive ──────────────────────────────────── */
+        @media (max-width: 480px) {
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <span style="font-size:1.75rem;">🔗</span>
+                <span style="font-weight:700; font-size:1.15rem;">URL Shortener</span>
+            </div>
+            <h1>Shrink Your Links</h1>
+            <p>Paste a long URL and get a short, shareable link instantly.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="card">
+            <form th:action="@{/shorten}" method="post" th:object="${urlRequest}" autocomplete="off">
+                <div class="form-group">
+                    <label for="longUrl">Destination URL</label>
+                    <input type="url" id="longUrl" th:field="*{longUrl}" placeholder="https://example.com/very/long/url"
+                        required="required" />
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label for="customAlias">Custom Alias <span style="opacity:.5">(optional)</span></label>
+                        <input type="text" id="customAlias" th:field="*{customAlias}" placeholder="my-link"
+                            maxlength="8" />
+                    </div>
+                    <div class="form-group">
+                        <label>Expires At <span style="opacity:.5">(optional)</span></label>
+                        <div class="dt-picker" id="dtPicker">
+                            <input type="hidden" id="expirationTime" th:field="*{expirationTime}" />
+                            <button type="button" class="dt-trigger" id="dtTrigger" onclick="togglePicker()">Set
+                                expiry…</button>
+                            <div class="dt-dropdown" id="dtDropdown">
+                                <label for="dtDate">Date</label>
+                                <input type="date" id="dtDate" />
+                                <label for="dtTime">Time</label>
+                                <input type="time" id="dtTime" value="23:59" />
+                                <div class="dt-actions">
+                                    <button type="button" class="dt-clear-btn" onclick="clearPicker()">Clear</button>
+                                    <button type="button" class="dt-done-btn" onclick="donePicker()">✓ Done</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">
+                    ⚡ Shorten URL
+                </button>
+            </form>
+
+            <!-- Result -->
+            <div class="result" th:if="${result}">
+                <div class="result-label">✓ Link created</div>
+                <div class="result-url-row">
+                    <div class="result-url">
+                        <a th:href="${result.shortUrl}" th:text="${result.shortUrl}" target="_blank" rel="noopener"></a>
+                    </div>
+                    <button class="copy-btn" onclick="copyUrl(this)" th:data-url="${result.shortUrl}">Copy</button>
+                </div>
+                <div class="result-meta">
+                    Original:
+                    <span class="result-meta-url" th:text="${result.longUrl}" th:title="${result.longUrl}"></span>
+                </div>
+                <div class="result-meta" th:if="${result.expirationTime}">
+                    Expires: <span th:text="${result.expirationTime}"></span>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div class="error" th:if="${error}" th:text="${error}"></div>
+        </div>
+
+        <div class="footer">Powered by Spring Boot &amp; Thymeleaf</div>
+    </div>
+
+    <script>
+        function copyUrl(btn) {
+            var url = btn.getAttribute('data-url');
+            navigator.clipboard.writeText(url).then(function () {
+                btn.textContent = 'Copied!';
+                setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+        /* ── Datetime Picker ──────────────── */
+        function togglePicker() {
+            document.getElementById('dtDropdown').classList.toggle('open');
+        }
+
+        function donePicker() {
+            var d = document.getElementById('dtDate').value;
+            var t = document.getElementById('dtTime').value || '23:59';
+            var hidden = document.getElementById('expirationTime');
+            var trigger = document.getElementById('dtTrigger');
+
+            if (d) {
+                hidden.value = d + 'T' + t;
+                trigger.textContent = d + '  ' + t;
+                trigger.classList.add('has-value');
+            }
+            document.getElementById('dtDropdown').classList.remove('open');
+        }
+
+        function clearPicker() {
+            document.getElementById('dtDate').value = '';
+            document.getElementById('dtTime').value = '23:59';
+            document.getElementById('expirationTime').value = '';
+            var trigger = document.getElementById('dtTrigger');
+            trigger.textContent = 'Set expiry\u2026';
+            trigger.classList.remove('has-value');
+            document.getElementById('dtDropdown').classList.remove('open');
+        }
+
+        // close picker when clicking outside
+        document.addEventListener('click', function (e) {
+            var picker = document.getElementById('dtPicker');
+            if (picker && !picker.contains(e.target)) {
+                document.getElementById('dtDropdown').classList.remove('open');
+            }
+        });
+
+        // if the hidden field already has a value (from Thymeleaf re-render), show it
+        (function () {
+            var val = document.getElementById('expirationTime').value;
+            if (val) {
+                var parts = val.split('T');
+                document.getElementById('dtDate').value = parts[0];
+                if (parts[1]) document.getElementById('dtTime').value = parts[1].substring(0, 5);
+                var trigger = document.getElementById('dtTrigger');
+                trigger.textContent = parts[0] + '  ' + (parts[1] ? parts[1].substring(0, 5) : '23:59');
+                trigger.classList.add('has-value');
+            }
+        })();
+    </script>
+</body>
+
+</html>
