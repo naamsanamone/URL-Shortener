@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: URL-Shortener
+
+  datasource:
+    url: jdbc:postgresql://localhost:5431/url_shortener
+    username: url_shortener_user
+    password: url_shortener_pass
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: redis
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: beans,health,info
+
+app:
+  base-url: http://localhost:8080/api/urls

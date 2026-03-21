@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: url_shortener_postgres
+    environment:
+      POSTGRES_DB: url_shortener
+      POSTGRES_USER: url_shortener_user
+      POSTGRES_PASSWORD: url_shortener_pass
+      PGPORT: 5431
+    ports:
+      - "5431:5431"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - url_shortener
+
+  redis:
+    image: redis:latest
+    container_name: url_shortener_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - url_shortener
+
+volumes:
+  pgdata:
+
+networks:
+  url_shortener:
+    driver: bridge
