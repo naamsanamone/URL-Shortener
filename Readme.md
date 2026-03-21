@@ -1,99 +1,108 @@
-## URL Shortener Backend
+# 🔗 URL Shortener
 
-Spring Boot based URL shortening service with Postgres for persistence and Redis for caching.
+A full-stack URL shortening service built with **Spring Boot** and **Thymeleaf**, backed by **PostgreSQL** for persistence and **Redis** for caching.
 
-### Tech Stack
+![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen?logo=spring)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-latest-red?logo=redis)
 
-- **Language**: Java 17  
-- **Framework**: Spring Boot 4 (Web, Data JPA, Validation, Cache, Actuator)  
-- **Database**: PostgreSQL  
-- **Cache**: Redis (5 min TTL for URL mappings)  
-- **Build**: Maven  
-- **Container orchestration (local)**: Docker Compose
+---
 
-### Core Features
+## ✨ Features
 
-- **Create short URL** from a long URL.
-- **Base62 short code** generated from numeric primary key (length grows with ID, typically up to 7–8 chars).
-- **Custom alias support** with uniqueness check (409 if alias already exists).
-- **Redirection** (`302 Found`) from short URL to long URL.
-- **Expiration support** (optional expiration time; expired links return `410 Gone` and are marked inactive).
-- **Redis caching**:
-  - `short:<code> -> longUrl`
-  - `long:<longUrl> -> code`
-  - TTL: 5 minutes.
+- **Shorten URLs** — paste a long URL, get a short shareable link instantly
+- **Custom Aliases** — choose your own short code (1–8 chars) with uniqueness validation
+- **Expiration Support** — set an optional expiry date/time; expired links return `410 Gone`
+- **Redis Caching** — bidirectional cache (`short→long`, `long→short`) with 5-minute TTL
+- **Base62 Encoding** — short codes auto-generated from database primary keys
+- **Web UI** — beautiful dark-themed Thymeleaf interface with glassmorphism design
+- **REST API** — JSON endpoints for programmatic access
+- **Spring Actuator** — health, info, and beans endpoints exposed
 
-### Getting Started
+---
 
-#### Prerequisites
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Java 17, Spring Boot 4 |
+| Web UI | Thymeleaf, HTML/CSS (Inter font, glassmorphism) |
+| Database | PostgreSQL 15 |
+| Cache | Redis |
+| ORM | Spring Data JPA / Hibernate |
+| Build | Maven |
+| Containers | Docker Compose |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
 
 - Java 17+
 - Maven 3+
 - Docker & Docker Compose
 
-#### Start Postgres and Redis
-
-From project root:
+### 1. Start Infrastructure
 
 ```bash
 docker-compose up -d
 ```
 
 This starts:
+- **PostgreSQL** on `localhost:5431`
+- **Redis** on `localhost:6379`
 
-- Postgres on `localhost:5431`
-- Redis on `localhost:6379`
-
-#### Run the Application
-
-From project root:
+### 2. Run the Application
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The app will start on `http://localhost:8080`.
+The app starts at **http://localhost:8080**
 
-### Configuration
+### 3. Open the UI
 
-Main configuration is in `src/main/resources/application.yaml`:
+Navigate to **http://localhost:8080** in your browser to use the web interface.
 
-- **Database**
-  - URL: `jdbc:postgresql://localhost:5431/url_shortener`
-  - User: `url_shortener_user`
-  - Password: `url_shortener_pass`
-- **Redis**
-  - Host: `localhost`
-  - Port: `6379`
-- **App base URL** (used in responses for full short URL):
-  - `app.base-url: http://localhost:8080/api/urls`
+---
 
-### API Endpoints
+## 🌐 Web UI
 
-Base path: `http://localhost:8080`
+The application includes a premium dark-themed web interface:
 
-#### 1. Create Short URL
+- **Shorten form** — destination URL, optional custom alias, optional expiration picker
+- **Result card** — displays the generated short URL with a one-click copy button
+- **Error handling** — inline error messages for alias conflicts and validation errors
+- **Responsive** — works on desktop and mobile
 
-- **Method**: `POST`
-- **URL**: `/api/urls`
-- **Request Body (JSON)**:
+---
 
-```json
+## 📡 REST API
+
+Base URL: `http://localhost:8080`
+
+### Create Short URL
+
+```http
+POST /api/urls
+Content-Type: application/json
+
 {
   "longUrl": "https://example.com/very/long/path",
-  "customAlias": "my-custom-alias",
+  "customAlias": "my-link",
   "expirationTime": "2026-12-31T23:59:59"
 }
 ```
 
-Fields:
+| Field | Required | Description |
+|---|---|---|
+| `longUrl` | ✅ | Target URL to shorten |
+| `customAlias` | ❌ | Desired short code (1–8 chars) |
+| `expirationTime` | ❌ | ISO-8601 datetime for expiry |
 
-- **longUrl** (required): target URL.
-- **customAlias** (optional): desired short code (1–8 chars). If already taken, API returns **409 Conflict**.
-- **expirationTime** (optional): ISO-8601 local datetime (server timezone). If omitted, link does not expire.
-
-- **Responses**:
-  - `201 Created`:
+**Response** (`201 Created`):
 
 ```json
 {
@@ -104,73 +113,75 @@ Fields:
 }
 ```
 
-  - `409 Conflict` (custom alias already exists):
+**Error** (`409 Conflict`): returned when custom alias already exists.
 
-```json
-{
-  "shortUrl": "Custom alias already exists: my-custom-alias",
-  "shortCode": null,
-  "longUrl": null,
-  "expirationTime": null
-}
-```
-
-#### 2. Redirect Short URL
-
-- **Method**: `GET`
-- **URL**: `/api/urls/{shortCode}`
-- **Behavior**:
-  - If active and not expired:
-    - Returns **302 Found** with `Location: <longUrl>`.
-  - If expired:
-    - Returns **410 Gone** and marks URL as inactive.
-  - If not found:
-    - Returns **404 Not Found**.
-
-Example:
+### Redirect Short URL
 
 ```http
-GET /api/urls/aB3xYz1 HTTP/1.1
-Host: localhost:8080
+GET /api/urls/{shortCode}
 ```
 
-Response:
+| Status | Condition |
+|---|---|
+| `302 Found` | Active, not expired → redirects to long URL |
+| `410 Gone` | Expired → marks URL inactive |
+| `404 Not Found` | Short code doesn't exist |
 
-```http
-HTTP/1.1 302 Found
-Location: https://example.com/very/long/path
-```
+---
 
-### Testing
+## ⚙️ Configuration
 
-Run tests:
+All config lives in `src/main/resources/application.yaml`:
+
+| Property | Default |
+|---|---|
+| Server port | `8080` |
+| PostgreSQL URL | `jdbc:postgresql://localhost:5431/url_shortener` |
+| PostgreSQL user | `url_shortener_user` |
+| Redis host/port | `localhost:6379` |
+| Base URL for short links | `http://localhost:8080/api/urls` |
+
+---
+
+## 🧪 Testing
 
 ```bash
 ./mvnw test
 ```
 
-For coverage (if you add Jacoco):
+Tests cover:
+- **UrlControllerTest** — REST endpoint behavior (redirect, not found, expired, conflict)
+- **UrlServiceTest** — business logic (Base62 encoding, caching, expiration, alias conflicts)
 
-```bash
-./mvnw test jacoco:report
+---
+
+## 📁 Project Structure
+
+```
+src/main/java/com/example/URLShortener/
+├── UrlShortenerApplication.java        # Entry point
+├── controllers/
+│   ├── urlController.java              # REST API controller
+│   └── WebController.java             # Thymeleaf web UI controller
+├── dto/
+│   ├── URLRequest.java                # Request DTO
+│   └── URLResponse.java              # Response DTO
+├── models/
+│   └── URL.java                       # JPA entity
+├── repository/
+│   └── UrlRepository.java            # Spring Data repository
+└── services/
+    ├── UrlService.java                # Core business logic
+    └── Base62Encoder.java             # Short code generator
+
+src/main/resources/
+├── application.yaml                   # App configuration
+└── templates/
+    └── index.html                     # Thymeleaf web UI
 ```
 
-The goal is to have ~80% coverage for core components (`UrlService`, `urlController`).
+---
 
-### Postman Usage
+## 📝 License
 
-You can use Postman (or any HTTP client) to:
-
-- `POST http://localhost:8080/api/urls` with JSON body to create a short URL.
-- `GET http://localhost:8080/api/urls/{shortCode}` to follow the redirect.
-
-Example Postman requests are described in detail in this README; you can create a collection with:
-
-- **Create Short URL** request:
-  - Method: `POST`
-  - URL: `http://localhost:8080/api/urls`
-  - Body: raw JSON as per “Create Short URL” section.
-- **Redirect Short URL** request:
-  - Method: `GET`
-  - URL: `http://localhost:8080/api/urls/{{shortCode}}`
-  - Path variable `shortCode` set to the value from the create response.
+This project is open source and available under the [MIT License](LICENSE).
