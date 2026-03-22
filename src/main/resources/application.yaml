@@ -34,3 +34,5 @@ management:
 
 app:
   base-url: http://localhost:8080/api/urls
+  rate-limit:
+    requests-per-minute: 20
