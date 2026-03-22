@@ -36,6 +36,12 @@ public class RateLimitFilter implements Filter {
         HttpServletRequest httpReq = (HttpServletRequest) request;
         HttpServletResponse httpRes = (HttpServletResponse) response;
 
+        // Only apply rate limiting to POST / creating data
+        if (!"POST".equalsIgnoreCase(httpReq.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String clientIp = resolveClientIp(httpReq);
         Bucket bucket = buckets.computeIfAbsent(clientIp, k -> createBucket());
 
