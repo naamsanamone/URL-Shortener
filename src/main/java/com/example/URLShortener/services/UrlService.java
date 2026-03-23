@@ -60,6 +60,7 @@ public class UrlService {
                 .longUrl(longUrl)
                 .expiresAt(expirationTime)
                 .active(true)
+                .shortUrl(desiredShortCode != null && !desiredShortCode.isBlank() ? desiredShortCode : "T" + (int)(Math.random() * 9000000 + 1000000))
                 .build();
 
         // first save to generate numeric ID
