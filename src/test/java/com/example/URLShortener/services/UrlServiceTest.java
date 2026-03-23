@@ -34,6 +34,7 @@ class UrlServiceTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         urlService = new UrlService(urlRepository, redisTemplate);
+        org.springframework.test.util.ReflectionTestUtils.setField(urlService, "baseUrl", "http://localhost:8080/api/urls");
     }
 
     @Test
@@ -41,19 +42,13 @@ class UrlServiceTest {
         URLRequest request = new URLRequest();
         request.setLongUrl("https://example.com");
 
-        URL savedNoId = URL.builder()
-                .id(null)
-                .longUrl("https://example.com")
-                .build();
-
-        URL savedWithId = URL.builder()
-                .id(1)
-                .longUrl("https://example.com")
-                .build();
-
-        when(urlRepository.save(any(URL.class)))
-                .thenReturn(savedNoId)
-                .thenReturn(savedWithId);
+        when(urlRepository.save(any(URL.class))).thenAnswer(invocation -> {
+            URL u = invocation.getArgument(0);
+            if (u.getId() == null) {
+                u.setId(1);
+            }
+            return u;
+        });
 
         URLResponse response = urlService.createShortUrl(request);
 
@@ -79,11 +74,13 @@ class UrlServiceTest {
     @Test
     void resolveLongUrl_returnsFromCache_whenPresent() {
         when(valueOperations.get("short:code")).thenReturn("https://cached.com");
+        URL entity = URL.builder().id(1).shortUrl("code").longUrl("https://cached.com").expiresAt(LocalDateTime.now().plusMinutes(10)).active(true).build();
+        when(urlRepository.findByShortUrlAndActiveTrue("code")).thenReturn(Optional.of(entity));
 
         String result = urlService.resolveLongUrl("code");
 
         assertThat(result).isEqualTo("https://cached.com");
-        verify(urlRepository, never()).findByShortUrlAndActiveTrue(anyString());
+        verify(urlRepository).findByShortUrlAndActiveTrue("code");
     }
 
     @Test
