@@ -23,6 +23,9 @@ class WebControllerTest {
     private UrlService urlService;
 
     @Mock
+    private com.example.URLShortener.services.AnalyticsService analyticsService;
+
+    @Mock
     private Model model;
 
     private WebController webController;
@@ -30,7 +33,7 @@ class WebControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        webController = new WebController(urlService);
+        webController = new WebController(urlService, analyticsService);
     }
 
     @Test

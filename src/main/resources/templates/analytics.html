@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --bg-start: #0f0c29; --bg-mid: #302b63; --bg-end: #24243e;
+            --card-bg: rgba(255, 255, 255, 0.06); --card-border: rgba(255, 255, 255, 0.12);
+            --accent: #7c3aed; --accent-glow: rgba(124, 58, 237, .45);
+            --text: #f1f5f9; --text-dim: #94a3b8;
+            --radius: 14px; --radius-sm: 10px;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-mid), var(--bg-end));
+            color: var(--text); min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; padding: 3rem 1rem; overflow-x: hidden;
+        }
+
+        .container { position: relative; z-index: 1; width: 100%; max-width: 700px; }
+
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2.2rem; font-weight: 800; background: linear-gradient(135deg, #c084fc, #7c3aed, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: var(--text-dim); margin-top: .5rem; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); padding: 2rem; box-shadow: 0 8px 32px rgba(0, 0, 0, .35); }
+
+        .stat-banner { display: flex; align-items: center; justify-content: space-between; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.3); padding: 1.5rem; border-radius: var(--radius-sm); margin-bottom: 2rem; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 2.5rem; font-weight: 800; color: #fff; }
+        .stat-label { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #c084fc; margin-top: 0.25rem; }
+
+        .table-wrapper { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--card-border); background: rgba(0,0,0,0.2); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 1rem; border-bottom: 1px solid var(--card-border); }
+        th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); background: rgba(255,255,255,0.05); }
+        td { font-size: 0.9rem; color: var(--text); }
+        tr:last-child td { border-bottom: none; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-dim); font-style: italic; }
+
+        .nav-link { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-dim); text-decoration: none; margin-bottom: 1.5rem; font-weight: 500; transition: color 0.2s; }
+        .nav-link:hover { color: #fff; }
+
+        @media (max-width: 600px) {
+            .stat-banner { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/" class="nav-link">← Back to Shortener</a>
+        
+        <div class="header">
+            <h1>Link Analytics</h1>
+            <p>Tracking traffic for short link: <strong>/<span th:text="${stats.shortUrl}"></span></strong></p>
+        </div>
+
+        <div class="card">
+            <div class="stat-banner">
+                <div class="stat-item">
+                    <div class="stat-value" th:text="${stats.totalClicks}">0</div>
+                    <div class="stat-label">Total Clicks</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Recent Clicks (Last 50)</h3>
+            <div class="table-wrapper">
+                <table th:if="${not #lists.isEmpty(stats.recentClicks)}">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>IP Address</th>
+                            <th>User Agent</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="click : ${stats.recentClicks}">
+                            <td style="white-space: nowrap;" th:text="${click.clickedAt}"></td>
+                            <td th:text="${click.ipAddress}"></td>
+                            <td th:text="${click.userAgent}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div th:if="${#lists.isEmpty(stats.recentClicks)}" class="empty-state">
+                    No clicks recorded yet. Share your link to get started!
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

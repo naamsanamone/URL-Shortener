@@ -300,6 +300,77 @@
             transform: scale(.95);
         }
 
+        .stats-btn {
+            flex-shrink: 0;
+            padding: .5rem .85rem;
+            background: rgba(124, 58, 237, .15);
+            border: 1px solid rgba(124, 58, 237, .3);
+            border-radius: 8px;
+            color: #c084fc;
+            font-size: .8rem;
+            font-weight: 600;
+            font-family: inherit;
+            text-decoration: none;
+            transition: background .2s, transform .15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-btn:hover {
+            background: rgba(124, 58, 237, .25);
+        }
+
+        .stats-btn:active {
+            transform: scale(.95);
+        }
+
+        .track-card {
+            margin-top: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .track-card input {
+            flex: 1;
+            padding: .65rem 1rem;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: .9rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .track-card input:focus {
+            border-color: var(--accent);
+        }
+
+        .track-btn {
+            padding: .65rem 1.25rem;
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        
+        .track-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
         .result-meta {
             margin-top: .75rem;
             font-size: .82rem;
@@ -486,6 +557,19 @@
                 gap: 0;
             }
 
+            .track-card {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .track-card input {
+                width: 100%;
+            }
+
+            .track-btn {
+                width: 100%;
+            }
+
             .card {
                 padding: 1.5rem;
             }
@@ -556,6 +640,7 @@
                     <div class="result-url">
                         <a th:href="${result.shortUrl}" th:text="${result.shortUrl}" target="_blank" rel="noopener"></a>
                     </div>
+                    <a th:if="${statsUrl}" th:href="${statsUrl}" class="stats-btn">📊 Stats</a>
                     <button class="copy-btn" onclick="copyUrl(this)" th:data-url="${result.shortUrl}">Copy</button>
                 </div>
                 <div class="result-meta">
@@ -571,6 +656,12 @@
             <div class="error" th:if="${error}" th:text="${error}"></div>
         </div>
 
+        <!-- Track Card -->
+        <div class="track-card">
+            <input type="text" id="trackAlias" placeholder="Enter short alias to view stats..." />
+            <button class="track-btn" onclick="trackLink()">View Analytics</button>
+        </div>
+
         <div class="footer">Powered by Spring Boot &amp; Thymeleaf</div>
     </div>
 
@@ -581,6 +672,18 @@
                 btn.textContent = 'Copied!';
                 setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
             });
+        }
+
+        function trackLink() {
+            var alias = document.getElementById('trackAlias').value.trim();
+            if (alias) {
+                // Remove protocol/domain if user pastes full url by mistake
+                if (alias.includes('/')) {
+                    var parts = alias.split('/');
+                    alias = parts[parts.length - 1];
+                }
+                window.location.href = '/stats/' + alias;
+            }
         }
 
         /* ── Datetime Picker ──────────────── */
