@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 
 @RestController
@@ -21,11 +22,14 @@ import java.net.URI;
 public class urlController {
 
     private final UrlService urlService;
+    private final com.example.URLShortener.services.AnalyticsService analyticsService;
 
     @GetMapping("/{shortUrl}")
-    public ResponseEntity<Void> getLongURLByShortURL(@NotNull @PathVariable("shortUrl") String shortUrl) {
+    public ResponseEntity<Void> getLongURLByShortURL(@NotNull @PathVariable("shortUrl") String shortUrl,
+            HttpServletRequest request) {
         try {
             String longUrl = urlService.resolveLongUrl(shortUrl);
+            analyticsService.recordClick(shortUrl, request);
             return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(longUrl)).build();
         } catch (UrlExpiredException e) {
             return ResponseEntity.status(HttpStatus.GONE).build();

@@ -3,6 +3,7 @@ package com.example.URLShortener.controllers;
 import com.example.URLShortener.dto.URLRequest;
 import com.example.URLShortener.dto.URLResponse;
 import com.example.URLShortener.services.UrlService;
+import com.example.URLShortener.services.AnalyticsService;
 import com.example.URLShortener.services.UrlService.AliasAlreadyExistsException;
 import com.example.URLShortener.services.UrlService.UrlExpiredException;
 import com.example.URLShortener.services.UrlService.UrlNotFoundException;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,11 +22,13 @@ public class UrlControllerTest {
         @Test
         void getLongURLByShortURL_redirectsWhenFound() {
                 UrlService urlService = Mockito.mock(UrlService.class);
-                urlController controller = new urlController(urlService);
+                AnalyticsService analyticsService = Mockito.mock(AnalyticsService.class);
+                HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+                urlController controller = new urlController(urlService, analyticsService);
 
                 when(urlService.resolveLongUrl("code")).thenReturn("https://example.com");
 
-                ResponseEntity<Void> response = controller.getLongURLByShortURL("code");
+                ResponseEntity<Void> response = controller.getLongURLByShortURL("code", request);
 
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
                 assertThat(response.getHeaders().getLocation()).hasToString("https://example.com");
@@ -33,29 +37,34 @@ public class UrlControllerTest {
         @Test
         void getLongURLByShortURL_returnsGoneWhenExpired() {
                 UrlService urlService = Mockito.mock(UrlService.class);
-                urlController controller = new urlController(urlService);
+                AnalyticsService analyticsService = Mockito.mock(AnalyticsService.class);
+                HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+                urlController controller = new urlController(urlService, analyticsService);
 
                 Mockito.doThrow(new UrlExpiredException("expired")).when(urlService).resolveLongUrl("expired");
 
-                ResponseEntity<Void> response = controller.getLongURLByShortURL("expired");
+                ResponseEntity<Void> response = controller.getLongURLByShortURL("expired", request);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
         }
 
         @Test
         void getLongURLByShortURL_returnsNotFoundWhenMissing() {
                 UrlService urlService = Mockito.mock(UrlService.class);
-                urlController controller = new urlController(urlService);
+                AnalyticsService analyticsService = Mockito.mock(AnalyticsService.class);
+                HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+                urlController controller = new urlController(urlService, analyticsService);
 
                 Mockito.doThrow(new UrlNotFoundException("missing")).when(urlService).resolveLongUrl("missing");
 
-                ResponseEntity<Void> response = controller.getLongURLByShortURL("missing");
+                ResponseEntity<Void> response = controller.getLongURLByShortURL("missing", request);
                 assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         }
 
         @Test
         void createShortURL_returnsCreatedOnSuccess() {
                 UrlService urlService = Mockito.mock(UrlService.class);
-                urlController controller = new urlController(urlService);
+                AnalyticsService analyticsService = Mockito.mock(AnalyticsService.class);
+                urlController controller = new urlController(urlService, analyticsService);
 
                 URLResponse response = URLResponse.builder()
                                 .shortUrl("http://localhost:8080/api/urls/code")
@@ -78,7 +87,8 @@ public class UrlControllerTest {
         @Test
         void createShortURL_returnsConflictOnAliasExists() {
                 UrlService urlService = Mockito.mock(UrlService.class);
-                urlController controller = new urlController(urlService);
+                AnalyticsService analyticsService = Mockito.mock(AnalyticsService.class);
+                urlController controller = new urlController(urlService, analyticsService);
 
                 Mockito.doThrow(new AliasAlreadyExistsException("alias exists"))
                                 .when(urlService).createShortUrl(any(URLRequest.class));
