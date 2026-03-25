@@ -12,6 +12,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,8 +29,14 @@ public class WebController {
     }
 
     @PostMapping("/shorten")
-    public String shortenUrl(@ModelAttribute URLRequest urlRequest, Model model) {
+    public String shortenUrl(@Valid @ModelAttribute URLRequest urlRequest, BindingResult bindingResult, Model model) {
         model.addAttribute("urlRequest", urlRequest);
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("error", bindingResult.getAllErrors().get(0).getDefaultMessage());
+            return "index";
+        }
+
         try {
             URLResponse response = urlService.createShortUrl(urlRequest);
             model.addAttribute("result", response);
