@@ -4,7 +4,6 @@ A full-stack, enterprise-grade URL shortening service built with **Spring Boot**
 
 <p align="center">
   <img src="docs/main.webp" alt="URL Shortener Flow" width="49%" />
-  <img src="docs/analytics.webp" alt="Analytics Dashboard" width="49%" />
 </p>
 
 ![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
@@ -29,20 +28,24 @@ A full-stack, enterprise-grade URL shortening service built with **Spring Boot**
 - **Input Validation** — Strict Regex validation mapped to Thymeleaf `BindingResult` to block XSS and prevent Open-Redirect vulnerabilities.
 - **100% Code Coverage** — Backed by comprehensive isolated unit tests verified via Jacoco.
 
+<p align="center">
+  <img src="docs/analytics.webp" alt="Analytics Dashboard" width="49%" />
+</p>
+
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Java 17, Spring Boot 4 |
-| Web UI | Thymeleaf, HTML/CSS (Inter font, Glassmorphism) |
-| Database | PostgreSQL 15 |
-| Cache & Rate Limiting | Redis (Bucket4j) |
-| ORM | Spring Data JPA / Hibernate |
-| Schema Management | Flyway |
-| Build & Testing | Maven, JUnit 5, Mockito, Jacoco |
-| Containers | Docker Compose |
+| Layer                 | Technology                                      |
+| --------------------- | ----------------------------------------------- |
+| Backend               | Java 17, Spring Boot 4                          |
+| Web UI                | Thymeleaf, HTML/CSS (Inter font, Glassmorphism) |
+| Database              | PostgreSQL 15                                   |
+| Cache & Rate Limiting | Redis (Bucket4j)                                |
+| ORM                   | Spring Data JPA / Hibernate                     |
+| Schema Management     | Flyway                                          |
+| Build & Testing       | Maven, JUnit 5, Mockito, Jacoco                 |
+| Containers            | Docker Compose                                  |
 
 ---
 
@@ -106,11 +109,11 @@ Content-Type: application/json
 }
 ```
 
-| Field | Required | Description |
-|---|---|---|
-| `longUrl` | ✅ | Target URL to shorten |
-| `customAlias` | ❌ | Desired short code (1–8 chars, Alphanumeric only) |
-| `expirationTime` | ❌ | ISO-8601 datetime for expiry |
+| Field            | Required | Description                                       |
+| ---------------- | -------- | ------------------------------------------------- |
+| `longUrl`        | ✅        | Target URL to shorten                             |
+| `customAlias`    | ❌        | Desired short code (1–8 chars, Alphanumeric only) |
+| `expirationTime` | ❌        | ISO-8601 datetime for expiry                      |
 
 **Response** (`201 Created`):
 
@@ -134,11 +137,11 @@ Content-Type: application/json
 GET /api/urls/{shortCode}
 ```
 
-| Status | Condition |
-|---|---|
-| `302 Found` | Active, not expired → redirects to long URL |
-| `410 Gone` | Expired → marks URL inactive |
-| `404 Not Found` | Short code doesn't exist |
+| Status          | Condition                                   |
+| --------------- | ------------------------------------------- |
+| `302 Found`     | Active, not expired → redirects to long URL |
+| `410 Gone`      | Expired → marks URL inactive                |
+| `404 Not Found` | Short code doesn't exist                    |
 
 ---
 
@@ -146,15 +149,15 @@ GET /api/urls/{shortCode}
 
 All config lives in `src/main/resources/application.yaml`:
 
-| Property | Default |
-|---|---|
-| Server port | `8080` |
-| PostgreSQL URL | `jdbc:postgresql://localhost:5431/url_shortener` |
-| PostgreSQL user | `url_shortener_user` |
-| Redis host/port | `localhost:6379` |
-| Base URL for short links | `http://localhost:8080/api/urls` |
-| Bucket4j Limits | `20 requests per minute per IP` |
-| Cleanup Cron | `0 0 * * * *` (Runs hourly) |
+| Property                 | Default                                          |
+| ------------------------ | ------------------------------------------------ |
+| Server port              | `8080`                                           |
+| PostgreSQL URL           | `jdbc:postgresql://localhost:5431/url_shortener` |
+| PostgreSQL user          | `url_shortener_user`                             |
+| Redis host/port          | `localhost:6379`                                 |
+| Base URL for short links | `http://localhost:8080/api/urls`                 |
+| Bucket4j Limits          | `20 requests per minute per IP`                  |
+| Cleanup Cron             | `0 0 * * * *` (Runs hourly)                      |
 
 ---
 
