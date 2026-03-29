@@ -2,9 +2,7 @@
 
 A full-stack, enterprise-grade URL shortening service built with **Spring Boot** and **Thymeleaf**, backed by **PostgreSQL** for persistence and **Redis** for caching and rate limiting.
 
-<p align="center">
-  <img src="docs/main.webp" alt="URL Shortener Flow" width="49%" />
-</p>
+![URL Shortener Flow](docs/main.webp)
 
 ![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0-brightgreen?logo=spring)
@@ -28,9 +26,7 @@ A full-stack, enterprise-grade URL shortening service built with **Spring Boot**
 - **Input Validation** — Strict Regex validation mapped to Thymeleaf `BindingResult` to block XSS and prevent Open-Redirect vulnerabilities.
 - **100% Code Coverage** — Backed by comprehensive isolated unit tests verified via Jacoco.
 
-<p align="center">
-  <img src="docs/analytics.webp" alt="Analytics Dashboard" width="49%" />
-</p>
+![Analytics Dashboard](docs/analytics.webp)
 
 ---
 
