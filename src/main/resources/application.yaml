@@ -6,9 +6,9 @@ spring:
     name: URL-Shortener
 
   datasource:
-    url: jdbc:postgresql://localhost:5431/url_shortener
-    username: url_shortener_user
-    password: url_shortener_pass
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5431/url_shortener}
+    username: ${SPRING_DATASOURCE_USERNAME:url_shortener_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:url_shortener_pass}
 
   jpa:
     hibernate:
@@ -20,8 +20,10 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      ssl: ${SPRING_DATA_REDIS_SSL:false}
 
   cache:
     type: redis
@@ -33,6 +35,6 @@ management:
         include: beans,health,info
 
 app:
-  base-url: http://localhost:8080/api/urls
+  base-url: ${APP_BASE_URL:http://localhost:8080/api/urls}
   rate-limit:
-    requests-per-minute: 20
+    requests-per-minute: ${RATE_LIMIT:20}
