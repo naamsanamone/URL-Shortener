@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: url-shortener
+    env: docker
+    plan: free
+    branch: master
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_HOST
+        sync: false
+      - key: SPRING_DATA_REDIS_PORT
+        sync: false
+      - key: SPRING_DATA_REDIS_PASSWORD
+        sync: false
+      - key: SPRING_DATA_REDIS_SSL
+        value: "true"
+      - key: RATE_LIMIT
+        value: "20"
+      - key: APP_BASE_URL
+        sync: false
