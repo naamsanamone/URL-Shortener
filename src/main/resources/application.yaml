@@ -23,7 +23,8 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
       password: ${SPRING_DATA_REDIS_PASSWORD:}
-      ssl: ${SPRING_DATA_REDIS_SSL:false}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL:false}
 
   cache:
     type: redis
