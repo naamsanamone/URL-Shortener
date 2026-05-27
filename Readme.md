@@ -1,6 +1,6 @@
-# 🔗 URL Shortener
+# URL Shortener
 
-A full-stack, production-grade URL shortening service built with **Spring Boot**, **Apache Kafka**, and **Thymeleaf**, backed by **PostgreSQL** for persistence, **Redis** for caching, and an **event-driven architecture** for async analytics processing.
+A URL shortening service built with **Spring Boot**, **Apache Kafka**, **PostgreSQL**, and **Redis**. Supports custom aliases, link expiration, click analytics, and async event processing via Kafka.
 
 ![URL Shortener Flow](docs/main.webp)
 
@@ -14,27 +14,27 @@ A full-stack, production-grade URL shortening service built with **Spring Boot**
 
 ---
 
-## ✨ Features
+## Features
 
-- **Shorten URLs** — Paste a long URL, get a short shareable link instantly.
-- **Custom Aliases** — Choose your own short code (1–8 chars) with strict alphanumeric security validation.
-- **Expiration Dates** — Set an optional expiry date/time.
-- **Advanced Analytics** — Real-time tracking of clicks, IP addresses, user agents, and timestamps via the `/stats/{alias}` dashboard.
-- **Event-Driven Analytics (Kafka)** — Click events are published to Kafka asynchronously, decoupling analytics writes from the redirect path. Reduces redirect latency from ~18ms to ~4ms.
-- **Redis Caching** — Lightning-fast bidirectional caching (`short→long`, `long→short`) to reduce database load.
-- **Global Rate Limiting** — Bucket4j-based rate limiting blocks API abuse (20 requests/minute per IP).
-- **Background Cleanup** — Scheduled CRON jobs automatically wipe expired URLs and analytics from PostgreSQL and flush them from Redis cache.
-- **Database Migrations** — Flyway integration for seamless database schema progression and version control.
-- **Web UI** — Beautiful dark-themed Thymeleaf interface with an interactive date-picker and a premium Glassmorphism aesthetic.
-- **Input Validation** — Strict Regex validation mapped to Thymeleaf `BindingResult` to block XSS and prevent Open-Redirect vulnerabilities.
-- **Graceful Degradation** — Redirects continue working even if Kafka is unavailable; failures are logged but never block the user.
-- **100% Code Coverage** — 25 unit tests with JaCoCo coverage enforcement.
+- **Shorten URLs** — paste a long URL, get a short link
+- **Custom Aliases** — choose your own short code (1–8 alphanumeric chars)
+- **Expiration** — optional expiry date for links
+- **Click Analytics** — tracks clicks, IPs, user agents via `/stats/{alias}` dashboard
+- **Async Analytics (Kafka)** — click events published to Kafka, consumed and persisted in the background. Keeps redirect latency low (~4ms vs ~18ms with sync writes)
+- **Redis Caching** — bidirectional cache (`short→long`, `long→short`) to reduce DB hits
+- **Rate Limiting** — Bucket4j-based, 20 requests/minute per IP
+- **Scheduled Cleanup** — cron job removes expired URLs from DB and cache
+- **Flyway Migrations** — versioned database schema changes
+- **Thymeleaf UI** — dark-themed web interface with date picker
+- **Input Validation** — regex validation to prevent XSS and open redirects
+- **Graceful Degradation** — redirects still work if Kafka is down
+- **Test Coverage** — 25 unit tests with JaCoCo enforcement
 
 ![Analytics Dashboard](docs/analytics.webp)
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌──────────────┐       ┌──────────────────────────────────────────────┐
@@ -73,13 +73,13 @@ A full-stack, production-grade URL shortening service built with **Spring Boot**
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer                  | Technology                                       |
 | ---------------------- | ------------------------------------------------ |
 | Backend                | Java 21, Spring Boot 4                           |
 | Event Streaming        | Apache Kafka (KRaft mode — no ZooKeeper)         |
-| Web UI                 | Thymeleaf, HTML/CSS (Inter font, Glassmorphism)  |
+| Web UI                 | Thymeleaf, HTML/CSS                              |
 | Database               | PostgreSQL 15                                    |
 | Cache & Rate Limiting  | Redis, Bucket4j                                  |
 | ORM                    | Spring Data JPA / Hibernate                      |
@@ -89,7 +89,7 @@ A full-stack, production-grade URL shortening service built with **Spring Boot**
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -128,9 +128,9 @@ docker-compose down
 
 ---
 
-## 🌐 Web UI
+## Web UI
 
-The application includes a premium dark-themed web interface:
+The app has a dark-themed web interface:
 
 - **Shorten form** — destination URL, optional custom alias, interactive expiration picker.
 - **Analytics Dashboard** — Built-in layout tracking views over time.
@@ -139,7 +139,7 @@ The application includes a premium dark-themed web interface:
 
 ---
 
-## 📡 REST API
+## REST API
 
 Base URL: `http://localhost:8080`
 
@@ -194,7 +194,7 @@ GET /api/urls/{shortCode}
 
 ---
 
-## 🔄 Kafka Event-Driven Analytics
+## Kafka Analytics
 
 ### How It Works
 
@@ -219,7 +219,7 @@ ZooKeeper was **deprecated in Kafka 3.3** and **removed in Kafka 4.0**. KRaft re
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 All config lives in `src/main/resources/application.yaml`:
 
@@ -239,7 +239,7 @@ Environment variable overrides: `KAFKA_SERVERS`, `APP_BASE_URL`, `RATE_LIMIT`.
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 ./mvnw clean verify
@@ -258,7 +258,7 @@ Environment variable overrides: `KAFKA_SERVERS`, `APP_BASE_URL`, `RATE_LIMIT`.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/main/java/com/example/URLShortener/
@@ -298,6 +298,6 @@ src/main/resources/
 
 --- 
 
-## 📝 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
