@@ -29,6 +29,18 @@ spring:
   cache:
     type: redis
 
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+    consumer:
+      group-id: analytics-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
 management:
   endpoints:
     web:
@@ -38,4 +50,4 @@ management:
 app:
   base-url: ${APP_BASE_URL:http://localhost:8080/api/urls}
   rate-limit:
-    requests-per-minute: ${RATE_LIMIT:20}
+    requests-per-minute: ${RATE_LIMIT:20}
